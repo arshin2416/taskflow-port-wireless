@@ -1,0 +1,68 @@
+[
+  {
+    "Id": 1,
+    "title": "Complete project proposal",
+    "description": "Finalize the Q4 marketing campaign proposal with budget details and timeline",
+    "priority": "high",
+    "status": "active",
+    "categoryId": "2",
+    "dueDate": "2024-01-15",
+    "createdAt": "2024-01-10T09:00:00Z",
+    "completedAt": null
+  },
+  {
+    "Id": 2,
+    "title": "Buy groceries",
+    "description": "Milk, eggs, bread, apples, chicken breast",
+    "priority": "medium",
+    "status": "active",
+    "categoryId": "3",
+    "dueDate": "2024-01-12",
+    "createdAt": "2024-01-10T10:30:00Z",
+    "completedAt": null
+  },
+  {
+    "Id": 3,
+    "title": "Schedule doctor appointment",
+    "description": "Annual checkup with Dr. Smith",
+    "priority": "medium",
+    "status": "active",
+    "categoryId": "1",
+    "dueDate": "2024-01-20",
+    "createdAt": "2024-01-09T14:15:00Z",
+    "completedAt": null
+  },
+  {
+    "Id": 4,
+    "title": "Review team performance",
+    "description": "Monthly one-on-ones with development team members",
+    "priority": "high",
+    "status": "completed",
+    "categoryId": "2",
+    "dueDate": "2024-01-08",
+    "createdAt": "2024-01-05T08:00:00Z",
+    "completedAt": "2024-01-08T16:30:00Z"
+  },
+  {
+    "Id": 5,
+    "title": "Learn React hooks",
+    "description": "Complete the advanced React hooks course on coding platform",
+    "priority": "low",
+    "status": "active",
+    "categoryId": "1",
+    "dueDate": "2024-01-25",
+    "createdAt": "2024-01-10T12:00:00Z",
+    "completedAt": null
+  },
+  {
+    "Id": 6,
+    "title": "Plan weekend trip",
+    "description": "Book hotel and activities for San Francisco weekend getaway",
+    "priority": "low",
+    "status": "active",
+    "categoryId": "1",
+    "dueDate": "2024-01-18",
+    "createdAt": "2024-01-08T19:45:00Z",
+    "completedAt": null
+  }
+]
