@@ -7,6 +7,7 @@ import ApperIcon from "@/components/ApperIcon";
 import Select from "@/components/atoms/Select";
 import Button from "@/components/atoms/Button";
 import FormField from "@/components/molecules/FormField";
+import FileUploader from "@/components/atoms/FileUploader";
 import { cn } from "@/utils/cn";
 
 const TaskModal = ({ 
@@ -22,7 +23,7 @@ const [formData, setFormData] = useState({
     priority: "medium",
     categoryId: "",
     dueDate: "",
-    files: null
+files: []
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ if (task) {
         priority: task.priority_c || task.priority || "medium",
         categoryId: task.category_id_c || task.categoryId || "",
         dueDate: task.due_date_c || task.dueDate || "",
-        files: task.files_c || task.files || null
+files: task.files_c || task.files || []
       });
 } else {
       setFormData({
@@ -48,7 +49,7 @@ if (task) {
         description: "",
         priority: "medium",
         categoryId: "",
-        files: null,
+files: [],
         dueDate: ""
       });
     }
@@ -116,7 +117,13 @@ savedTask = await taskService.update(task.Id, formData);
   };
 
 const handleChange = (field) => (e) => {
-    const value = field === 'files' ? e.target.files : e.target.value;
+    let value;
+    if (field === 'files') {
+      // Handle FileUploader component (receives array directly) or file input (FileList)
+      value = Array.isArray(e) ? e : Array.from(e.target.files || []);
+    } else {
+      value = e.target.value;
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
 
     // Clear error when user starts typing
@@ -210,16 +217,17 @@ value={formData.categoryId}
               onChange={handleChange("dueDate")}
 />
             
-<FormField
-              label="Files"
-              name="files"
-              type="file"
-              value={formData.files}
-              onChange={handleChange("files")}
-              placeholder="Attach files to this task"
-              multiple
-            />
-
+<div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Files
+              </label>
+              <FileUploader
+                value={formData.files}
+                onChange={handleChange("files")}
+                multiple
+                error={errors.files}
+              />
+            </div>
             {/* Actions */}
             <div className="flex gap-3 pt-4">
               <Button
