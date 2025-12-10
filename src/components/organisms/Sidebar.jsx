@@ -202,16 +202,16 @@ const SidebarContent = ({ navItems, categories, taskCounts, loading, onClose, Na
               ))}
             </div>
           ) : (
-            categories.map((category) => (
+categories.map((category) => (
               <NavItem
                 key={category.Id}
                 href={`/category/${category.Id}`}
-href={`/category/${category.Id}`}
                 icon={category.icon_c}
                 label={category.Name}
                 count={taskCounts.categories?.[category.Id] || 0}
                 isCategory={true}
-color={category.color_c}
+                color={category.color_c}
+              />
             ))
           )}
         </div>
