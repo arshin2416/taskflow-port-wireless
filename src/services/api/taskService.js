@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 class TaskService {
   constructor() {
     this.tableName = 'task_c';
-    this.updateableFields = ['Name', 'title_c', 'description_c', 'priority_c', 'category_id_c', 'due_date_c', 'status_c', 'completed_at_c'];
+this.updateableFields = ['Name', 'title_c', 'description_c', 'priority_c', 'category_id_c', 'due_date_c', 'status_c', 'completed_at_c', 'files_c'];
   }
 
   async delay() {
@@ -20,7 +20,7 @@ class TaskService {
       }
 
       const response = await apperClient.fetchRecords(this.tableName, {
-        fields: [
+fields: [
           {"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "title_c"}},
@@ -30,6 +30,7 @@ class TaskService {
           {"field": {"Name": "due_date_c"}},
           {"field": {"Name": "status_c"}},
           {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "files_c"}},
           {"field": {"Name": "CreatedOn"}}
         ]
       });
@@ -56,7 +57,7 @@ class TaskService {
       }
 
       const response = await apperClient.getRecordById(this.tableName, parseInt(id), {
-        fields: [
+fields: [
           {"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "title_c"}},
@@ -66,6 +67,7 @@ class TaskService {
           {"field": {"Name": "due_date_c"}},
           {"field": {"Name": "status_c"}},
           {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "files_c"}},
           {"field": {"Name": "CreatedOn"}}
         ]
       });
@@ -93,7 +95,7 @@ class TaskService {
 
       const response = await apperClient.fetchRecords(this.tableName, {
         fields: [
-          {"field": {"Name": "Id"}},
+{"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "title_c"}},
           {"field": {"Name": "description_c"}},
@@ -102,6 +104,7 @@ class TaskService {
           {"field": {"Name": "due_date_c"}},
           {"field": {"Name": "status_c"}},
           {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "files_c"}},
           {"field": {"Name": "CreatedOn"}}
         ],
         where: [{
@@ -134,7 +137,7 @@ class TaskService {
 
       const response = await apperClient.fetchRecords(this.tableName, {
         fields: [
-          {"field": {"Name": "Id"}},
+{"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "title_c"}},
           {"field": {"Name": "description_c"}},
@@ -143,6 +146,7 @@ class TaskService {
           {"field": {"Name": "due_date_c"}},
           {"field": {"Name": "status_c"}},
           {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "files_c"}},
           {"field": {"Name": "CreatedOn"}}
         ],
         where: [{
@@ -173,7 +177,7 @@ class TaskService {
 
       const response = await apperClient.fetchRecords(this.tableName, {
         fields: [
-          {"field": {"Name": "Id"}},
+{"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "title_c"}},
           {"field": {"Name": "description_c"}},
@@ -182,6 +186,7 @@ class TaskService {
           {"field": {"Name": "due_date_c"}},
           {"field": {"Name": "status_c"}},
           {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "files_c"}},
           {"field": {"Name": "CreatedOn"}}
         ],
         whereGroups: [{
@@ -224,7 +229,7 @@ class TaskService {
 
       const response = await apperClient.fetchRecords(this.tableName, {
         fields: [
-          {"field": {"Name": "Id"}},
+{"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "title_c"}},
           {"field": {"Name": "description_c"}},
@@ -233,6 +238,7 @@ class TaskService {
           {"field": {"Name": "due_date_c"}},
           {"field": {"Name": "status_c"}},
           {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "files_c"}},
           {"field": {"Name": "CreatedOn"}}
         ],
         whereGroups: [{
@@ -283,7 +289,8 @@ class TaskService {
         category_id_c: taskData.categoryId ? parseInt(taskData.categoryId) : (taskData.category_id_c ? parseInt(taskData.category_id_c) : null),
         due_date_c: taskData.dueDate || taskData.due_date_c || '',
         status_c: 'active',
-        completed_at_c: null
+completed_at_c: null,
+        files_c: null
       };
 
       // Remove empty fields
@@ -337,7 +344,8 @@ class TaskService {
       // Map old field names to new ones
       if (taskData.title !== undefined) recordData.title_c = taskData.title;
       if (taskData.description !== undefined) recordData.description_c = taskData.description;
-      if (taskData.priority !== undefined) recordData.priority_c = taskData.priority;
+if (taskData.priority !== undefined) recordData.priority_c = taskData.priority;
+      if (taskData.files !== undefined) recordData.files_c = taskData.files;
       if (taskData.categoryId !== undefined) recordData.category_id_c = parseInt(taskData.categoryId);
       if (taskData.dueDate !== undefined) recordData.due_date_c = taskData.dueDate;
       if (taskData.status !== undefined) {
@@ -354,7 +362,8 @@ class TaskService {
       if (taskData.description_c !== undefined) recordData.description_c = taskData.description_c;
       if (taskData.priority_c !== undefined) recordData.priority_c = taskData.priority_c;
       if (taskData.category_id_c !== undefined) recordData.category_id_c = parseInt(taskData.category_id_c);
-      if (taskData.due_date_c !== undefined) recordData.due_date_c = taskData.due_date_c;
+if (taskData.due_date_c !== undefined) recordData.due_date_c = taskData.due_date_c;
+      if (taskData.files_c !== undefined) recordData.files_c = taskData.files_c;
       if (taskData.status_c !== undefined) recordData.status_c = taskData.status_c;
       if (taskData.completed_at_c !== undefined) recordData.completed_at_c = taskData.completed_at_c;
 
@@ -441,7 +450,7 @@ class TaskService {
       if (!apperClient) return [];
 
       const response = await apperClient.fetchRecords(this.tableName, {
-        fields: [
+fields: [
           {"field": {"Name": "Id"}},
           {"field": {"Name": "Name"}},
           {"field": {"Name": "title_c"}},
@@ -451,6 +460,7 @@ class TaskService {
           {"field": {"Name": "due_date_c"}},
           {"field": {"Name": "status_c"}},
           {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "files_c"}},
           {"field": {"Name": "CreatedOn"}}
         ],
         whereGroups: [{

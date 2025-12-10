@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-toastify";
-import FormField from "@/components/molecules/FormField";
-import Button from "@/components/atoms/Button";
-import ApperIcon from "@/components/ApperIcon";
-import { cn } from "@/utils/cn";
 import taskService from "@/services/api/taskService";
 import categoryService from "@/services/api/categoryService";
+import ApperIcon from "@/components/ApperIcon";
+import Select from "@/components/atoms/Select";
+import Button from "@/components/atoms/Button";
+import FormField from "@/components/molecules/FormField";
+import { cn } from "@/utils/cn";
 
 const TaskModal = ({ 
   isOpen, 
@@ -20,7 +21,8 @@ const [formData, setFormData] = useState({
     description: "",
     priority: "medium",
     categoryId: "",
-    dueDate: ""
+    dueDate: "",
+    files: null
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -37,14 +39,16 @@ if (task) {
         description: task.description_c || task.description || "",
         priority: task.priority_c || task.priority || "medium",
         categoryId: task.category_id_c || task.categoryId || "",
-        dueDate: task.due_date_c || task.dueDate || ""
+        dueDate: task.due_date_c || task.dueDate || "",
+        files: task.files_c || task.files || null
       });
-    } else {
+} else {
       setFormData({
         title: "",
         description: "",
         priority: "medium",
         categoryId: "",
+        files: null,
         dueDate: ""
       });
     }
@@ -111,10 +115,10 @@ savedTask = await taskService.update(task.Id, formData);
     }
   };
 
-  const handleChange = (field) => (e) => {
-    const value = e.target.value;
+const handleChange = (field) => (e) => {
+    const value = field === 'files' ? e.target.files : e.target.value;
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: null }));
@@ -204,6 +208,16 @@ value={formData.categoryId}
               type="date"
               value={formData.dueDate}
               onChange={handleChange("dueDate")}
+/>
+            
+<FormField
+              label="Files"
+              name="files"
+              type="file"
+              value={formData.files}
+              onChange={handleChange("files")}
+              placeholder="Attach files to this task"
+              multiple
             />
 
             {/* Actions */}

@@ -74,6 +74,14 @@ const TaskCard = ({
           )}>
 {task.title_c || task.title}
           </h3>
+          {task.files_c && task.files_c.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              <ApperIcon name="Paperclip" className="w-4 h-4 text-gray-500" />
+              <span className="text-xs text-gray-500">
+                {Array.isArray(task.files_c) ? task.files_c.length : 1} file(s) attached
+              </span>
+            </div>
+          )}
 
           {/* Description */}
           {task.description && (

@@ -66,11 +66,10 @@ const task = tasks.find(t => t.Id === taskId);
       const newStatus = task.status_c === "completed" ? "active" : "completed";
       const updatedTask = await taskService.update(taskId, { status: newStatus });
       
-      // Update local state
-// Update local state with updated task data
+      // Update local state with updated task data including files
       setTasks(prevTasks => 
         prevTasks.map(t => 
-          t.Id === taskId ? { ...t, ...updatedTask } : t
+          t.Id === taskId ? { ...t, ...updatedTask, files_c: t.files_c } : t
         )
       );
 
