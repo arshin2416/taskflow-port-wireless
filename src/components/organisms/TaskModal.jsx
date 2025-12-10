@@ -15,7 +15,7 @@ const TaskModal = ({
   onSave,
   className 
 }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "medium",
@@ -31,13 +31,13 @@ const TaskModal = ({
   }, []);
 
   useEffect(() => {
-    if (task) {
+if (task) {
       setFormData({
-        title: task.title || "",
-        description: task.description || "",
-        priority: task.priority || "medium",
-        categoryId: task.categoryId || "",
-        dueDate: task.dueDate || ""
+        title: task.title_c || task.title || "",
+        description: task.description_c || task.description || "",
+        priority: task.priority_c || task.priority || "medium",
+        categoryId: task.category_id_c || task.categoryId || "",
+        dueDate: task.due_date_c || task.dueDate || ""
       });
     } else {
       setFormData({
@@ -93,7 +93,7 @@ const TaskModal = ({
       
       if (task) {
         // Update existing task
-        savedTask = await taskService.update(task.Id, formData);
+savedTask = await taskService.update(task.Id, formData);
         toast.success("Task updated successfully!");
       } else {
         // Create new task
@@ -186,7 +186,7 @@ const TaskModal = ({
                 label="Category"
                 type="select"
                 required
-                value={formData.categoryId}
+value={formData.categoryId}
                 onChange={handleChange("categoryId")}
                 error={errors.categoryId}
               >

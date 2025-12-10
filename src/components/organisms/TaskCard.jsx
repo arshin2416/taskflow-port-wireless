@@ -72,7 +72,7 @@ const TaskCard = ({
             task.status === "completed" && "line-through text-slate-500",
             isCompleting && "line-through text-slate-500"
           )}>
-            {task.title}
+{task.title_c || task.title}
           </h3>
 
           {/* Description */}

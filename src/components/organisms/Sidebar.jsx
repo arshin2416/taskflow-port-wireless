@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
-import { cn } from "@/utils/cn";
-import ApperIcon from "@/components/ApperIcon";
-import categoryService from "@/services/api/categoryService";
 import taskService from "@/services/api/taskService";
+import categoryService from "@/services/api/categoryService";
+import ApperIcon from "@/components/ApperIcon";
+import { cn } from "@/utils/cn";
 
 const Sidebar = ({ isOpen, onClose, className }) => {
   const [categories, setCategories] = useState([]);
@@ -38,7 +38,7 @@ const Sidebar = ({ isOpen, onClose, className }) => {
       // Count tasks by category
       const categoryCountsObj = {};
       categories.forEach(category => {
-        categoryCountsObj[category.Id] = activeTasks.filter(task => task.categoryId === category.Id.toString()).length;
+categoryCountsObj[category.Id] = activeTasks.filter(task => task.category_id_c === category.Id).length;
       });
 
       setTaskCounts({
@@ -95,11 +95,8 @@ const Sidebar = ({ isOpen, onClose, className }) => {
       }
     >
       <div className="flex items-center gap-3">
-        {isCategory && color ? (
-          <div 
-            className="h-4 w-1 rounded-full"
-            style={{ backgroundColor: color }}
-          />
+{isCategory && color ? (
+          <div className="h-4 w-1 rounded-full" style={{ backgroundColor: color }} />
         ) : (
           <ApperIcon name={icon} className="h-4 w-4" />
         )}
@@ -209,12 +206,12 @@ const SidebarContent = ({ navItems, categories, taskCounts, loading, onClose, Na
               <NavItem
                 key={category.Id}
                 href={`/category/${category.Id}`}
-                icon={category.icon}
-                label={category.name}
+href={`/category/${category.Id}`}
+                icon={category.icon_c}
+                label={category.Name}
                 count={taskCounts.categories?.[category.Id] || 0}
                 isCategory={true}
-                color={category.color}
-              />
+color={category.color_c}
             ))
           )}
         </div>

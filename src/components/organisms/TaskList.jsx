@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import TaskCard from "@/components/organisms/TaskCard";
 import Loading from "@/components/ui/Loading";
 import ErrorView from "@/components/ui/ErrorView";
 import Empty from "@/components/ui/Empty";
+import TaskCard from "@/components/organisms/TaskCard";
 import { cn } from "@/utils/cn";
 
 const TaskList = ({ 
@@ -129,10 +129,9 @@ const TaskList = ({
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
           {sortedTasks.map((task) => (
-            <TaskCard
+<TaskCard
               key={task.Id}
               task={task}
-              category={categoryLookup[task.categoryId]}
               onToggleComplete={onTaskToggle}
               onEdit={onTaskEdit}
               onDelete={onTaskDelete}

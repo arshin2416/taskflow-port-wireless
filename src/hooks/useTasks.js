@@ -29,11 +29,12 @@ export const useTasks = (filterType = "all", filterValue = null) => {
           break;
         case "category":
           data = await taskService.getByCategory(filterValue);
+case "category":
+          data = await taskService.getByCategory(filterValue);
           break;
         case "priority":
           const allTasks = await taskService.getAll();
-          data = allTasks.filter(task => task.priority === filterValue && task.status === "active");
-          break;
+data = allTasks.filter(task => task.priority_c === filterValue && task.status_c === "active");
         case "search":
           if (filterValue) {
             data = await taskService.search(filterValue);
@@ -59,16 +60,17 @@ export const useTasks = (filterType = "all", filterValue = null) => {
 
   const toggleTask = async (taskId) => {
     try {
-      const task = tasks.find(t => t.Id === taskId);
+const task = tasks.find(t => t.Id === taskId);
       if (!task) return;
 
-      const newStatus = task.status === "completed" ? "active" : "completed";
+      const newStatus = task.status_c === "completed" ? "active" : "completed";
       const updatedTask = await taskService.update(taskId, { status: newStatus });
       
       // Update local state
+// Update local state with updated task data
       setTasks(prevTasks => 
         prevTasks.map(t => 
-          t.Id === taskId ? updatedTask : t
+          t.Id === taskId ? { ...t, ...updatedTask } : t
         )
       );
 

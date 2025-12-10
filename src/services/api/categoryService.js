@@ -1,16 +1,10 @@
-import categoriesData from "../mockData/categories.json";
+import { getApperClient } from '@/services/apperClient';
+import { toast } from 'react-toastify';
 
 class CategoryService {
   constructor() {
-    this.storageKey = "taskflow_categories";
-    this.initializeStorage();
-  }
-
-  initializeStorage() {
-    const stored = localStorage.getItem(this.storageKey);
-    if (!stored) {
-      localStorage.setItem(this.storageKey, JSON.stringify(categoriesData));
-    }
+    this.tableName = 'category_c';
+    this.updateableFields = ['Name', 'icon_c', 'color_c', 'order_c'];
   }
 
   async delay() {
@@ -18,61 +12,203 @@ class CategoryService {
   }
 
   async getAll() {
-    await this.delay();
-    const stored = localStorage.getItem(this.storageKey);
-    const categories = stored ? JSON.parse(stored) : [];
-    return categories.sort((a, b) => a.order - b.order);
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        console.error('Failed to get ApperClient instance');
+        return [];
+      }
+
+      const response = await apperClient.fetchRecords(this.tableName, {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "icon_c"}},
+          {"field": {"Name": "color_c"}},
+          {"field": {"Name": "order_c"}}
+        ],
+        orderBy: [{
+          "fieldName": "order_c",
+          "sorttype": "ASC"
+        }]
+      });
+
+      if (!response.success) {
+        console.error('Failed to fetch categories:', response);
+        toast.error(response.message);
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching categories:', error?.response?.data?.message || error);
+      return [];
+    }
   }
 
   async getById(id) {
-    await this.delay();
-    const categories = await this.getAll();
-    return categories.find(category => category.Id === parseInt(id)) || null;
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        console.error('Failed to get ApperClient instance');
+        return null;
+      }
+
+      const response = await apperClient.getRecordById(this.tableName, parseInt(id), {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "icon_c"}},
+          {"field": {"Name": "color_c"}},
+          {"field": {"Name": "order_c"}}
+        ]
+      });
+
+      if (!response.success) {
+        console.error(`Failed to fetch category with Id: ${id}:`, response);
+        toast.error(response.message);
+        return null;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching category ${id}:`, error?.response?.data?.message || error);
+      return null;
+    }
   }
 
   async create(categoryData) {
-    await this.delay();
-    const categories = await this.getAll();
-    const maxId = categories.reduce((max, category) => Math.max(max, category.Id), 0);
-    const maxOrder = categories.reduce((max, category) => Math.max(max, category.order), 0);
-    
-    const newCategory = {
-      ...categoryData,
-      Id: maxId + 1,
-      order: maxOrder + 1
-    };
-    
-    const updatedCategories = [...categories, newCategory];
-    localStorage.setItem(this.storageKey, JSON.stringify(updatedCategories));
-    return { ...newCategory };
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        console.error('Failed to get ApperClient instance');
+        return null;
+      }
+
+      const recordData = {
+        Name: categoryData.name || categoryData.Name || '',
+        icon_c: categoryData.icon || categoryData.icon_c || 'Folder',
+        color_c: categoryData.color || categoryData.color_c || '#6366f1',
+        order_c: categoryData.order || categoryData.order_c || 1
+      };
+
+      const response = await apperClient.createRecord(this.tableName, {
+        records: [recordData]
+      });
+
+      if (!response.success) {
+        console.error('Failed to create category:', response);
+        toast.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to create ${failed.length} records:`, failed);
+          failed.forEach(record => {
+            record.errors?.forEach(error => toast.error(`${error.fieldLabel}: ${error}`));
+            if (record.message) toast.error(record.message);
+          });
+        }
+        return successful.length > 0 ? successful[0].data : null;
+      }
+    } catch (error) {
+      console.error('Error creating category:', error?.response?.data?.message || error);
+      return null;
+    }
   }
 
   async update(id, categoryData) {
-    await this.delay();
-    const categories = await this.getAll();
-    const categoryIndex = categories.findIndex(category => category.Id === parseInt(id));
-    
-    if (categoryIndex === -1) {
-      throw new Error("Category not found");
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        console.error('Failed to get ApperClient instance');
+        return null;
+      }
+
+      const recordData = {
+        Id: parseInt(id),
+        Name: categoryData.name || categoryData.Name,
+        icon_c: categoryData.icon || categoryData.icon_c,
+        color_c: categoryData.color || categoryData.color_c,
+        order_c: categoryData.order || categoryData.order_c
+      };
+
+      // Remove undefined fields
+      Object.keys(recordData).forEach(key => {
+        if (recordData[key] === undefined) {
+          delete recordData[key];
+        }
+      });
+
+      const response = await apperClient.updateRecord(this.tableName, {
+        records: [recordData]
+      });
+
+      if (!response.success) {
+        console.error('Failed to update category:', response);
+        toast.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to update ${failed.length} records:`, failed);
+          failed.forEach(record => {
+            record.errors?.forEach(error => toast.error(`${error.fieldLabel}: ${error}`));
+            if (record.message) toast.error(record.message);
+          });
+        }
+        return successful.length > 0 ? successful[0].data : null;
+      }
+    } catch (error) {
+      console.error('Error updating category:', error?.response?.data?.message || error);
+      return null;
     }
-    
-    const updatedCategory = {
-      ...categories[categoryIndex],
-      ...categoryData,
-      Id: parseInt(id)
-    };
-    
-    categories[categoryIndex] = updatedCategory;
-    localStorage.setItem(this.storageKey, JSON.stringify(categories));
-    return { ...updatedCategory };
   }
 
   async delete(id) {
-    await this.delay();
-    const categories = await this.getAll();
-    const filteredCategories = categories.filter(category => category.Id !== parseInt(id));
-    localStorage.setItem(this.storageKey, JSON.stringify(filteredCategories));
-    return true;
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        console.error('Failed to get ApperClient instance');
+        return false;
+      }
+
+      const response = await apperClient.deleteRecord(this.tableName, {
+        RecordIds: [parseInt(id)]
+      });
+
+      if (!response.success) {
+        console.error('Failed to delete category:', response);
+        toast.error(response.message);
+        return false;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+        
+        if (failed.length > 0) {
+          console.error(`Failed to delete ${failed.length} records:`, failed);
+          failed.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+        }
+        return successful.length > 0;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting category:', error?.response?.data?.message || error);
+      return false;
+    }
   }
 }
 

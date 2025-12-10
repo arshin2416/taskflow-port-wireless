@@ -26,7 +26,7 @@ const CategoryTasks = () => {
 
   useEffect(() => {
     if (categories.length > 0 && categoryId) {
-      const category = categories.find(cat => cat.Id === parseInt(categoryId));
+const category = categories.find(cat => cat.Id === parseInt(categoryId));
       setCurrentCategory(category);
     }
   }, [categories, categoryId]);
@@ -69,13 +69,13 @@ const CategoryTasks = () => {
 
   // Filter tasks by category if searching
   const filteredTasks = searchQuery 
-    ? tasks.filter(task => task.categoryId === categoryId)
+? tasks.filter(task => task.category_id_c === parseInt(categoryId))
     : tasks;
 
   return (
     <div className="flex-1 flex flex-col h-full">
       <Header
-        title={currentCategory?.name || "Category Tasks"}
+title={currentCategory?.Name || "Category Tasks"}
         onAddTask={handleAddTask}
         onSearch={handleSearch}
         showMobileMenu={false}
@@ -94,12 +94,12 @@ const CategoryTasks = () => {
           emptyTitle={
             searchQuery 
               ? "No tasks found" 
-              : `No ${currentCategory?.name?.toLowerCase() || "category"} tasks`
+: `No ${currentCategory?.Name?.toLowerCase() || "category"} tasks`
           }
           emptyDescription={
             searchQuery 
               ? `No tasks match "${searchQuery}" in this category.`
-              : `No tasks in the ${currentCategory?.name || "category"} category yet. Add one to get started!`
+: `No tasks in the ${currentCategory?.Name || "category"} category yet. Add one to get started!`
           }
         />
       </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import SearchBar from "@/components/molecules/SearchBar";
 import Button from "@/components/atoms/Button";
 import FilterDropdown from "@/components/molecules/FilterDropdown";
@@ -12,10 +13,12 @@ const Header = ({
   onFilter,
   currentFilter,
   onToggleSidebar,
+  onLogout,
   showMobileMenu = true,
   className 
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { isAuthenticated, user } = useSelector((state) => state.user);
 
   const filterOptions = [
     { value: "all", label: "All Tasks" },
@@ -72,7 +75,7 @@ const Header = ({
           />
         </div>
 
-        {/* Right side - Filter and Add button */}
+        {/* Right side - Filter, Add button, and Logout */}
         <div className="flex items-center gap-2">
           {onFilter && (
             <FilterDropdown
@@ -90,6 +93,19 @@ const Header = ({
             >
               <ApperIcon name="Plus" className="h-4 w-4" />
               <span className="hidden sm:inline">Add Task</span>
+            </Button>
+          )}
+
+          {/* Logout Button */}
+          {isAuthenticated && onLogout && (
+            <Button 
+              variant="outline"
+              onClick={onLogout}
+              className="flex items-center gap-2"
+              title={`Logout ${user?.firstName || 'User'}`}
+            >
+              <ApperIcon name="LogOut" className="h-4 w-4" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           )}
         </div>

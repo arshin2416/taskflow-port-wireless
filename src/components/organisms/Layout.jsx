@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { useAuth } from "@/layouts/Root";
 import Header from "@/components/organisms/Header";
 import Sidebar from "@/components/organisms/Sidebar";
 
 const Layout = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { logout } = useAuth();
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
@@ -32,6 +34,7 @@ const Layout = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <Header 
           onToggleSidebar={toggleMobileSidebar}
+          onLogout={logout}
         />
         
         <main className="flex-1 overflow-auto">
