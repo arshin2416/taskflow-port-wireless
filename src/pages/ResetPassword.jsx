@@ -7,7 +7,7 @@ const ResetPassword = () => {
     }, []);
 
     return (
-        <>           
+        <>
             <div className="flex-1 py-12 px-5 flex justify-center items-center">
                 <div id="authentication-reset-password" className="bg-secondary mx-auto w-[400px] max-w-full p-10 rounded-2xl"></div>
             </div>

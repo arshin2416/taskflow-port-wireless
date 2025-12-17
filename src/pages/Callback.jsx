@@ -1,14 +1,12 @@
-import React, { useEffect } from 'react'
+import React, { useEffect } from 'react';
 
 const Callback = () => {
-  useEffect(() => {
-    const { ApperUI } = window.ApperSDK;
-    ApperUI.showSSOVerify("#authentication-callback");
-  }, []);
-  
-  return (
-    <div id="authentication-callback"></div>
-  )
-}
+    useEffect(() => {
+        const { ApperUI } = window.ApperSDK;
+        ApperUI.showSSOVerify('#authentication-callback');
+    }, []);
 
-export default Callback
+    return <div id="authentication-callback"></div>;
+};
+
+export default Callback;

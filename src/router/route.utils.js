@@ -1,4 +1,4 @@
-import routeConfig from "./routes.json";
+import routeConfig from './routes.json';
 
 // Custom authorization functions registry
 const customFunctions = {}; // Always keep empty
@@ -6,8 +6,8 @@ const customFunctions = {}; // Always keep empty
 // Get route configuration with pattern matching
 export const getRouteConfig = (path) => {
     // Normalize the path
-    if (!path || path === "index") path = "/";
-    if (!path.startsWith("/")) path = "/" + path;
+    if (!path || path === 'index') path = '/';
+    if (!path.startsWith('/')) path = '/' + path;
 
     // First check for direct match
     if (routeConfig[path]) {
@@ -16,8 +16,8 @@ export const getRouteConfig = (path) => {
 
     // If no direct match, check patterns
     const matches = Object.keys(routeConfig)
-        .filter(pattern => matchesPattern(path, pattern))
-        .map(pattern => ({
+        .filter((pattern) => matchesPattern(path, pattern))
+        .map((pattern) => ({
             pattern,
             config: routeConfig[pattern],
             specificity: getSpecificity(pattern)
@@ -33,20 +33,20 @@ function matchesPattern(path, pattern) {
     if (path === pattern) return true;
 
     // Handle parameter routes (like /product/:id)
-    if (pattern.includes(":")) {
-        const regex = new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$");
+    if (pattern.includes(':')) {
+        const regex = new RegExp('^' + pattern.replace(/:[^/]+/g, '[^/]+') + '$');
         return regex.test(path);
     }
 
     // Handle wildcard patterns
-    if (pattern.includes("*")) {
-        if (pattern.endsWith("/**/*")) {
-            const base = pattern.replace("/**/*", "");
-            return path.startsWith(base + "/");
-        } else if (pattern.endsWith("/*")) {
-            const base = pattern.replace("/*", "");
-            const remainder = path.replace(base, "");
-            return remainder.startsWith("/") && !remainder.substring(1).includes("/");
+    if (pattern.includes('*')) {
+        if (pattern.endsWith('/**/*')) {
+            const base = pattern.replace('/**/*', '');
+            return path.startsWith(base + '/');
+        } else if (pattern.endsWith('/*')) {
+            const base = pattern.replace('/*', '');
+            const remainder = path.replace(base, '');
+            return remainder.startsWith('/') && !remainder.substring(1).includes('/');
         }
     }
 
@@ -58,22 +58,22 @@ function getSpecificity(pattern) {
     let score = 0;
 
     // Exact paths get highest priority
-    if (!pattern.includes("*") && !pattern.includes(":")) {
+    if (!pattern.includes('*') && !pattern.includes(':')) {
         score += 1000;
     }
 
     // Parameter routes get medium priority
-    if (pattern.includes(":")) {
+    if (pattern.includes(':')) {
         score += 500;
     }
 
     // Single wildcards get lower priority than parameters
-    if (pattern.includes("/*") && !pattern.includes("/**/*")) {
+    if (pattern.includes('/*') && !pattern.includes('/**/*')) {
         score += 300;
     }
 
     // Deep wildcards get lowest priority
-    if (pattern.includes("/**/*")) {
+    if (pattern.includes('/**/*')) {
         score += 100;
     }
 
@@ -85,8 +85,8 @@ function getSpecificity(pattern) {
 
 function evaluateRule(rule, user) {
     // Basic rules
-    if (rule === "public") return true;
-    if (rule === "authenticated") return !!user;
+    if (rule === 'public') return true;
+    if (rule === 'authenticated') return !!user;
 
     return evaluateDynamicRule(rule, user);
 }
@@ -100,9 +100,7 @@ function evaluateDynamicRule(rule, user) {
         const contextValues = Object.values(user);
 
         // Wrap expression in return statement if not already present
-        const wrappedRule = rule.trim().startsWith('return')
-            ? rule
-            : `return (${rule})`;
+        const wrappedRule = rule.trim().startsWith('return') ? rule : `return (${rule})`;
 
         // Create function with all user properties as parameters
         const func = new Function(...contextKeys, wrappedRule);
@@ -112,7 +110,6 @@ function evaluateDynamicRule(rule, user) {
 
         // Ensure boolean result
         return Boolean(result);
-
     } catch (error) {
         console.error('Error evaluating rule:', rule, error);
         return false;
@@ -155,7 +152,7 @@ export function verifyRouteAccess(config, user) {
 
         return {
             allowed,
-            redirectTo: allowed ? null : (allowedConfig.redirectOnDeny || "/login"),
+            redirectTo: allowed ? null : allowedConfig.redirectOnDeny || '/login',
             excludeRedirectQuery: allowedConfig.excludeRedirectQuery === true,
             failed: allowed ? [] : [`Custom function "${allowedConfig.function}" failed`]
         };
@@ -163,33 +160,31 @@ export function verifyRouteAccess(config, user) {
 
     // Otherwise, use the when conditions as before
     const whenClause = allowedConfig.when || allowedConfig;
-    const { conditions = [], operator = "OR" } = whenClause;
+    const { conditions = [], operator = 'OR' } = whenClause;
 
     // Evaluate all conditions
-    const results = conditions.map(cond => ({
+    const results = conditions.map((cond) => ({
         label: cond.label,
         rule: cond.rule,
         passed: evaluateRule(cond.rule, user)
     }));
 
-    const failed = results.filter(r => !r.passed);
+    const failed = results.filter((r) => !r.passed);
 
     // Apply operator logic
-    const allowed = operator === "OR"
-        ? results.some(r => r.passed)
-        : results.every(r => r.passed);
+    const allowed = operator === 'OR' ? results.some((r) => r.passed) : results.every((r) => r.passed);
 
     // Determine redirect
     let redirectTo = null;
     if (!allowed) {
         // Use allowedConfig's redirectOnDeny if available, otherwise redirect to login
-        redirectTo = allowedConfig.redirectOnDeny || "/login";
+        redirectTo = allowedConfig.redirectOnDeny || '/login';
     }
 
     return {
         allowed,
         redirectTo,
         excludeRedirectQuery: allowedConfig.excludeRedirectQuery === true,
-        failed: failed.map(f => f.label)
+        failed: failed.map((f) => f.label)
     };
 }
