@@ -111,7 +111,6 @@ export const bytesToKB = (bytes) => {
 /**
  * Formats files for record creation
  * When creating a record, only the Path is needed
- * @param {Array} files - Array of file objects with uploadResult
  * @returns {Array} - Formatted array for create: [{ "Path": "..." }, ...]
  */
 export const toCreateFormat = (files) => {
@@ -120,7 +119,7 @@ export const toCreateFormat = (files) => {
     }
 
     return files.map((file) => ({
-        Path: file.uploadResult?.data?.key || file.Path
+        Path: file.Path
     }));
 };
 
@@ -137,7 +136,7 @@ export const toUpdateFormat = (files) => {
 
     return files.map((file) => {
         const formatted = {
-            Path: file.uploadResult?.data?.key || file.Path
+            Path: file.Path
         };
 
         // If file has an Id, it's an existing file - include the Id

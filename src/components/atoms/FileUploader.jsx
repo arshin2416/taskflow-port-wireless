@@ -127,7 +127,7 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                                 Name: entry.file.Name || entry.file.name,
                                 Size: entry.file.Size || (entry.file.size ? entry.file.size / 1024 : 0), // Size in KB
                                 Type: entry.file.Type || entry.file.type,
-                                uploadResult: result,
+                                Path: result?.data?.key,
                                 uploadedAt: new Date().toISOString()
                             }
                         });
@@ -216,7 +216,7 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                     ref={fileInputRef}
                     type="file"
                     multiple={fieldConfig.supportMultipleValues}
-                    accept={accept}
+                    accept={fieldConfig.supportedExtensions}
                     onChange={handleFileInputChange}
                     className="hidden"
                     {...props}
