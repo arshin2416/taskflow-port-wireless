@@ -21,9 +21,10 @@ export const transformAndValidate = (config, files) => {
     // Transform and validate each file
     const transformedFiles = fileArray.map((file, index) => {
         // Transform file to Pascal case
-        const transformedFile = transformFileToPascalCase(file);
+        // const transformedFile = transformFileToPascalCase(file);
+        const transformedFile = transformFile(file);
 
-        const fileSize = transformedFile.Size;
+        const fileSize = transformedFile.size;
         const fileNum = fileArray.length > 1 ? `File ${index + 1}: ` : '';
 
         // Check extension (empty string or empty array means all types supported)
@@ -31,7 +32,7 @@ export const transformAndValidate = (config, files) => {
         const hasExtensionRestriction = extensions && extensions !== '' && Array.isArray(extensions) && extensions.length > 0;
 
         if (hasExtensionRestriction) {
-            const ext = transformedFile.Name ? transformedFile.Name.split('.').pop().toLowerCase() : '';
+            const ext = transformedFile.name ? transformedFile.name.split('.').pop().toLowerCase() : '';
             if (!extensions.some((e) => e.toLowerCase() === ext)) {
                 errors.push(`${fileNum}Invalid file type. Allowed: ${extensions.join(', ')}`);
             }
@@ -53,6 +54,20 @@ export const transformAndValidate = (config, files) => {
     return { isValid: errors.length === 0, errors, transformedFiles };
 };
 
+export const transformFile = (file) => {
+    if (file.path) {
+        return file;
+    }
+    const sizeInKB = file.size / 1024;
+
+    // Shadow the read-only size property with KB value
+    Object.defineProperty(file, 'size', {
+        value: sizeInKB,
+        writable: false,
+        configurable: true
+    });
+    return file;
+};
 /**
  * Transforms file object keys to Pascal case and converts size to KB
  * @param {Object} file - File object with lowercase or mixed case keys
@@ -119,7 +134,7 @@ export const toCreateFormat = (files) => {
     }
 
     return files.map((file) => ({
-        Path: file.Path
+        Path: file.path
     }));
 };
 
@@ -136,12 +151,12 @@ export const toUpdateFormat = (files) => {
 
     return files.map((file) => {
         const formatted = {
-            Path: file.Path
+            Path: file.path
         };
 
         // If file has an Id, it's an existing file - include the Id
         if (file.Id) {
-            formatted.Id = file.Id;
+            formatted.Id = file.id;
         }
 
         return formatted;

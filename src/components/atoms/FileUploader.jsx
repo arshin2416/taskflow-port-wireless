@@ -124,10 +124,10 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                         resolve({
                             success: true,
                             fileInfo: {
-                                Name: entry.file.Name || entry.file.name,
-                                Size: entry.file.Size || (entry.file.size ? entry.file.size / 1024 : 0), // Size in KB
-                                Type: entry.file.Type || entry.file.type,
-                                Path: result?.data?.key,
+                                name: entry.file.name || entry.file.Name,
+                                size: entry.file.size || entry.file.Size, // Size in KB
+                                type: entry.file.type || entry.file.Type,
+                                path: result?.data?.key,
                                 uploadedAt: new Date().toISOString()
                             }
                         });
@@ -275,9 +275,9 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                                         {uploadEntry.status === 'error' && <ApperIcon name="AlertCircle" className="w-4 h-4 text-red-600" />}
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-slate-700 truncate">{uploadEntry.file.Name}</p>
+                                        <p className="text-sm font-medium text-slate-700 truncate">{uploadEntry.file.name}</p>
                                         <div className="flex items-center gap-2">
-                                            <p className="text-xs text-slate-500">{formatFileSize(uploadEntry.file.Size)}</p>
+                                            <p className="text-xs text-slate-500">{formatFileSize(uploadEntry.file.size)}</p>
                                             {uploadEntry.status === 'uploading' && <p className="text-xs text-blue-600">{uploadEntry.progress}%</p>}
                                         </div>
                                         {uploadEntry.status === 'error' && <p className="text-xs text-red-600">{uploadEntry.error}</p>}
@@ -313,8 +313,8 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                                         <ApperIcon name="Check" className="w-4 h-4 text-green-600" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-slate-700 truncate">{file.Name}</p>
-                                        <p className="text-xs text-slate-500">{formatFileSize(file.Size)}</p>
+                                        <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                                        <p className="text-xs text-slate-500">{formatFileSize(file.size)}</p>
                                     </div>
                                 </div>
 
