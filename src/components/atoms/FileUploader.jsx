@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
+import { toast } from 'react-toastify';
 import ApperIcon from '@/components/ApperIcon';
 import Button from '@/components/atoms/Button';
 import { cn } from '@/utils/cn';
 import { getApperClient } from '@/services/apperClient';
-import { transformAndValidate, formatFileSize } from '@/utils/File';
+import { transformAndValidateFile, formatFileSize } from '@/utils/File';
 
 const FileUploader = ({ value = [], onChange, accept, className, error, ...props }) => {
     const [isDragOver, setIsDragOver] = useState(false);
@@ -16,7 +17,7 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
         minValue: 1,
         maxValue: 5120,
         supportMultipleValues: true,
-        supportedExtensions: ''
+        supportedExtensions: ['.png']
     };
 
     const files = Array.isArray(value) ? value : [];
@@ -82,34 +83,57 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
         // Clear previous validation errors
         setValidationErrors([]);
 
-        // Transform and validate files before upload
-        let transformedNewFiles = newFiles;
-        if (fieldConfig) {
-            // Combine existing files + new files for validation
-            const totalFiles = [...files, ...newFiles];
-            const validation = transformAndValidate(fieldConfig, totalFiles);
-            if (!validation.isValid) {
-                setValidationErrors(validation.errors);
-                return;
-            }
-            // Use only the transformed new files (last N files from transformedFiles)
-            transformedNewFiles = validation.transformedFiles.slice(-newFiles.length);
+        // Check if multiple files are allowed
+        if (!fieldConfig.supportMultipleValues && newFiles.length > 1) {
+            toast.error('Only one file is allowed');
+            return;
         }
 
-        // Create uploading file entries with progress tracking
-        const uploadingEntries = transformedNewFiles.map((file, index) => ({
+        // Validate each file individually
+        const validationResults = newFiles.map((file) => {
+            const validation = transformAndValidateFile(fieldConfig, file);
+            return {
+                file: validation.transformedFile || file,
+                isValid: validation.isValid,
+                errors: validation.errors
+            };
+        });
+
+        // Separate valid and invalid files
+        const validFiles = validationResults.filter((result) => result.isValid);
+        const invalidFiles = validationResults.filter((result) => !result.isValid);
+
+        // Handle single file mode with validation error
+        if (!fieldConfig.supportMultipleValues && invalidFiles.length > 0) {
+            // Show toast error for single file mode
+            invalidFiles[0].errors.forEach((error) => {
+                toast.error(error);
+            });
+            return;
+        }
+
+        // Create entries for all files (valid will upload, invalid will show errors)
+        const uploadingEntries = validationResults.map((result, index) => ({
             id: `${Date.now()}-${index}`,
-            file,
+            file: result.file,
             progress: 0,
-            status: 'uploading', // 'uploading', 'success', 'error'
-            error: null,
+            status: result.isValid ? 'uploading' : 'validation-error',
+            error: result.isValid ? null : result.errors.join(', '),
             result: null
         }));
 
         setUploadingFiles((prev) => [...prev, ...uploadingEntries]);
 
-        // Upload files in parallel
-        const uploadPromises = uploadingEntries.map(async (entry) => {
+        // Only upload valid files
+        const validEntries = uploadingEntries.filter((entry) => entry.status === 'uploading');
+
+        if (validEntries.length === 0) {
+            // All files failed validation - keep them in the list to show errors
+            return;
+        }
+
+        // Upload valid files in parallel
+        const uploadPromises = validEntries.map(async (entry) => {
             return new Promise((resolve) => {
                 uploadFile(entry.file, {
                     onProgress: (progress) => {
@@ -120,7 +144,7 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                         // Mark as successful and store result
                         setUploadingFiles((prev) => prev.map((f) => (f.id === entry.id ? { ...f, status: 'success', result, progress: 100 } : f)));
 
-                        // Return uploaded file info (using Pascal case)
+                        // Return uploaded file info
                         resolve({
                             success: true,
                             fileInfo: {
@@ -178,13 +202,14 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
             }
         }
 
+        // Remove successful uploads after delay, keep validation errors and upload errors
         setTimeout(() => {
             setUploadingFiles((prev) =>
                 prev.filter((f) => {
                     const isInCurrentBatch = uploadingEntries.some((e) => e.id === f.id);
                     // Only remove if it's in current batch AND status is success
                     if (isInCurrentBatch) {
-                        return f.status === 'error'; // Keep if error, remove if success
+                        return f.status !== 'success'; // Keep errors, remove success
                     }
                     return true; // Keep files from other batches
                 })
@@ -262,38 +287,81 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
             {/* Uploading Files */}
             {uploadingFiles.length > 0 && (
                 <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-slate-700">Uploading:</h4>
+                    <h4 className="text-sm font-medium text-slate-700">
+                        {uploadingFiles.some((f) => f.status === 'uploading')
+                            ? 'Uploading:'
+                            : uploadingFiles.some((f) => f.status === 'validation-error' || f.status === 'error')
+                              ? 'Upload Failed'
+                              : 'Upload Status:'}
+                    </h4>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {uploadingFiles.map((uploadEntry) => (
-                            <div key={uploadEntry.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                <div className="flex items-center gap-3 min-w-0 flex-1">
-                                    <div className="w-8 h-8 rounded bg-blue-200 flex items-center justify-center flex-shrink-0">
-                                        {uploadEntry.status === 'uploading' && (
-                                            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
-                                        )}
-                                        {uploadEntry.status === 'success' && <ApperIcon name="Check" className="w-4 h-4 text-green-600" />}
-                                        {uploadEntry.status === 'error' && <ApperIcon name="AlertCircle" className="w-4 h-4 text-red-600" />}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-slate-700 truncate">{uploadEntry.file.name}</p>
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-xs text-slate-500">{formatFileSize(uploadEntry.file.size)}</p>
-                                            {uploadEntry.status === 'uploading' && <p className="text-xs text-blue-600">{uploadEntry.progress}%</p>}
-                                        </div>
-                                        {uploadEntry.status === 'error' && <p className="text-xs text-red-600">{uploadEntry.error}</p>}
+                        {uploadingFiles.map((uploadEntry) => {
+                            const isValidationError = uploadEntry.status === 'validation-error';
+                            const isUploadError = uploadEntry.status === 'error';
+                            const isError = isValidationError || isUploadError;
 
-                                        {uploadEntry.status === 'uploading' && (
-                                            <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
-                                                <div
-                                                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                                                    style={{ width: `${uploadEntry.progress}%` }}
-                                                />
+                            return (
+                                <div
+                                    key={uploadEntry.id}
+                                    className={cn(
+                                        'flex items-center justify-between p-3 rounded-lg border',
+                                        isError ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'
+                                    )}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <div
+                                            className={cn(
+                                                'w-8 h-8 rounded flex items-center justify-center flex-shrink-0',
+                                                isError ? 'bg-red-200' : 'bg-blue-200'
+                                            )}
+                                        >
+                                            {uploadEntry.status === 'uploading' && (
+                                                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+                                            )}
+                                            {uploadEntry.status === 'success' && <ApperIcon name="Check" className="w-4 h-4 text-green-600" />}
+                                            {isError && <ApperIcon name="AlertCircle" className="w-4 h-4 text-red-600" />}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-medium text-slate-700 truncate">{uploadEntry.file.name}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs text-slate-500">{formatFileSize(uploadEntry.file.size)}</p>
+                                                {uploadEntry.status === 'uploading' && (
+                                                    <p className="text-xs text-blue-600">{uploadEntry.progress}%</p>
+                                                )}
                                             </div>
-                                        )}
+                                            {uploadEntry.error && (
+                                                <p className="text-xs text-red-600 mt-1">
+                                                    {isValidationError ? 'Validation Error: ' : 'Upload Error: '}
+                                                    {uploadEntry.error}
+                                                </p>
+                                            )}
+
+                                            {uploadEntry.status === 'uploading' && (
+                                                <div className="w-full bg-slate-200 rounded-full h-1.5 mt-1">
+                                                    <div
+                                                        className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                                                        style={{ width: `${uploadEntry.progress}%` }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
+                                    {isError && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setUploadingFiles((prev) => prev.filter((f) => f.id !== uploadEntry.id));
+                                            }}
+                                            className="flex-shrink-0 ml-2 text-slate-400 hover:text-red-600"
+                                        >
+                                            <ApperIcon name="X" className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}

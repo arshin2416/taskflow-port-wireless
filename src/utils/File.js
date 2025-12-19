@@ -1,58 +1,99 @@
 /**
+ * Validates a single file against field configuration
+ * @param {File} file - File to validate
+ * @param {Object} config - Field configuration
+ * @returns {Object} - { isValid: boolean, errors: string[], transformedFile: File }
+ */
+export const transformAndValidateFile = (config, file) => {
+    const errors = [];
+
+    if (!file) {
+        return { isValid: false, errors: ['No file provided'], transformedFile: null };
+    }
+
+    // Transform file to ensure size is in KB
+    const transformedFile = transformFile(file);
+    const fileSize = transformedFile.size;
+
+    // Check extension (empty string or empty array means all types supported)
+    const extensions = config?.supportedExtensions;
+    const hasExtensionRestriction = extensions && extensions !== '' && Array.isArray(extensions) && extensions.length > 0;
+
+    if (hasExtensionRestriction) {
+        const ext = transformedFile.name ? transformedFile.name.split('.').pop().toLowerCase() : '';
+        if (!extensions.some((e) => e.toLowerCase() === '.' + ext)) {
+            errors.push(`Invalid file type. Allowed: ${extensions.join(', ')}`);
+        }
+    }
+
+    // Check minimum size (fileSize and config values are in KB)
+    if (config?.minValue && fileSize < config.minValue) {
+        errors.push(`File too small. Minimum: ${formatFileSize(config.minValue)}`);
+    }
+
+    // Check maximum size (fileSize and config values are in KB)
+    if (config?.maxValue && fileSize > config.maxValue) {
+        errors.push(`File too large. Maximum: ${formatFileSize(config.maxValue)}`);
+    }
+
+    return { isValid: errors.length === 0, errors, transformedFile };
+};
+
+/**
  * Transforms file objects to Pascal case and validates them against field configuration
  * @param {File[]} files - Array of files to transform and validate
  * @param {Object} config - Field configuration
  * @returns {Object} - { isValid: boolean, errors: string[], transformedFiles: Array }
  */
-export const transformAndValidate = (config, files) => {
-    const errors = [];
-    const fileArray = Array.isArray(files) ? files : [files];
+// export const transformAndValidate = (config, files) => {
+//     const errors = [];
+//     const fileArray = Array.isArray(files) ? files : [files];
 
-    // If no files and not required, it's valid
-    if (fileArray.length === 0) {
-        return { isValid: true, errors: [], transformedFiles: [] };
-    }
+//     // If no files and not required, it's valid
+//     if (fileArray.length === 0) {
+//         return { isValid: true, errors: [], transformedFiles: [] };
+//     }
 
-    // Check multiple files
-    if (!config?.supportMultipleValues && fileArray.length > 1) {
-        errors.push('Only one file is allowed');
-    }
+//     // Check multiple files
+//     if (!config?.supportMultipleValues && fileArray.length > 1) {
+//         errors.push('Only one file is allowed');
+//     }
 
-    // Transform and validate each file
-    const transformedFiles = fileArray.map((file, index) => {
-        // Transform file to Pascal case
-        // const transformedFile = transformFileToPascalCase(file);
-        const transformedFile = transformFile(file);
+//     // Transform and validate each file
+//     const transformedFiles = fileArray.map((file, index) => {
+//         // Transform file to Pascal case
+//         // const transformedFile = transformFileToPascalCase(file);
+//         const transformedFile = transformFile(file);
 
-        const fileSize = transformedFile.size;
-        const fileNum = fileArray.length > 1 ? `File ${index + 1}: ` : '';
+//         const fileSize = transformedFile.size;
+//         const fileNum = fileArray.length > 1 ? `File ${index + 1}: ` : '';
 
-        // Check extension (empty string or empty array means all types supported)
-        const extensions = config?.supportedExtensions;
-        const hasExtensionRestriction = extensions && extensions !== '' && Array.isArray(extensions) && extensions.length > 0;
+//         // Check extension (empty string or empty array means all types supported)
+//         const extensions = config?.supportedExtensions;
+//         const hasExtensionRestriction = extensions && extensions !== '' && Array.isArray(extensions) && extensions.length > 0;
 
-        if (hasExtensionRestriction) {
-            const ext = transformedFile.name ? transformedFile.name.split('.').pop().toLowerCase() : '';
-            if (!extensions.some((e) => e.toLowerCase() === ext)) {
-                errors.push(`${fileNum}Invalid file type. Allowed: ${extensions.join(', ')}`);
-            }
-        }
+//         if (hasExtensionRestriction) {
+//             const ext = transformedFile.name ? transformedFile.name.split('.').pop().toLowerCase() : '';
+//             if (!extensions.some((e) => e.toLowerCase() === ext)) {
+//                 errors.push(`${fileNum}Invalid file type. Allowed: ${extensions.join(', ')}`);
+//             }
+//         }
 
-        // Check minimum size (fileSize and config values are in KB)
-        if (config?.minValue && fileSize < config.minValue) {
-            errors.push(`${fileNum}File too small. Minimum: ${formatFileSize(config.minValue)}`);
-        }
+//         // Check minimum size (fileSize and config values are in KB)
+//         if (config?.minValue && fileSize < config.minValue) {
+//             errors.push(`${fileNum}File too small. Minimum: ${formatFileSize(config.minValue)}`);
+//         }
 
-        // Check maximum size (fileSize and config values are in KB)
-        if (config?.maxValue && fileSize > config.maxValue) {
-            errors.push(`${fileNum}File too large. Maximum: ${formatFileSize(config.maxValue)}`);
-        }
+//         // Check maximum size (fileSize and config values are in KB)
+//         if (config?.maxValue && fileSize > config.maxValue) {
+//             errors.push(`${fileNum}File too large. Maximum: ${formatFileSize(config.maxValue)}`);
+//         }
 
-        return transformedFile;
-    });
+//         return transformedFile;
+//     });
 
-    return { isValid: errors.length === 0, errors, transformedFiles };
-};
+//     return { isValid: errors.length === 0, errors, transformedFiles };
+// };
 
 export const transformFile = (file) => {
     if (file.path) {
@@ -107,10 +148,21 @@ export const transformFileToPascalCase = (file) => {
  */
 export const formatFileSize = (kb) => {
     if (kb === 0) return '0 KB';
+
+    // Handle files smaller than 1 KB (convert to bytes)
+    if (kb < 1) {
+        const bytes = Math.round(kb * 1024);
+        return bytes + ' Bytes';
+    }
+
     const k = 1024;
     const sizes = ['KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(kb) / Math.log(k));
-    return Math.round((kb / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+
+    // Ensure index is within bounds
+    const sizeIndex = Math.max(0, Math.min(i, sizes.length - 1));
+
+    return Math.round((kb / Math.pow(k, sizeIndex)) * 100) / 100 + ' ' + sizes[sizeIndex];
 };
 
 /**
