@@ -16,18 +16,18 @@ export const transformAndValidateFile = (config, file) => {
     if (hasExtensionRestriction) {
         const ext = transformedFile.name ? transformedFile.name.split('.').pop().toLowerCase() : '';
         if (!extensions.some((e) => e.toLowerCase() === '.' + ext)) {
-            errors.push(`Invalid file type. Allowed: ${extensions.join(', ')}`);
+            errors.push(`Invalid file type, Please select another file. Allowed file types: ${extensions.join(', ')}`);
         }
     }
 
     // Check minimum size (fileSize and config values are in KB)
     if (config?.minValue && fileSize < config.minValue) {
-        errors.push(`File too small. Minimum: ${formatFileSize(config.minValue)}`);
+        errors.push(`The minimum allowed file size is ${formatFileSize(config.minValue)}. Please select another file. `);
     }
 
     // Check maximum size (fileSize and config values are in KB)
     if (config?.maxValue && fileSize > config.maxValue) {
-        errors.push(`File too large. Maximum: ${formatFileSize(config.maxValue)}`);
+        errors.push(`The maximum allowed file size is ${formatFileSize(config.maxValue)}. Please select another file. `);
     }
 
     return { isValid: errors.length === 0, errors, transformedFile };
