@@ -46,9 +46,9 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                     console.log('upload success in callback', result);
                     callbacks.onSuccess?.(result);
                 },
-                onError: (error) => {
-                    console.error('upload error in callback', error);
-                    callbacks.onError?.(error);
+                onFailure: (failure) => {
+                    console.error('upload error in callback', failure);
+                    callbacks.onFailure?.(failure);
                 }
             }
         );
@@ -156,17 +156,17 @@ const FileUploader = ({ value = [], onChange, accept, className, error, ...props
                             }
                         });
                     },
-                    onError: (error) => {
-                        console.error('File upload failed:', error);
+                    onFailure: (failure) => {
+                        console.error('File upload failed:', failure);
 
                         // Mark as failed
                         setUploadingFiles((prev) =>
-                            prev.map((f) => (f.id === entry.id ? { ...f, status: 'error', error: error.message || 'Upload failed' } : f))
+                            prev.map((f) => (f.id === entry.id ? { ...f, status: 'error', error: failure.message || 'Upload failed' } : f))
                         );
 
                         resolve({
                             success: false,
-                            error: error.message || 'Upload failed'
+                            error: failure.message || 'Upload failed'
                         });
                     }
                 }).catch((error) => {
